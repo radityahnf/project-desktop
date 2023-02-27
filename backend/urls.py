@@ -5,4 +5,5 @@ app_name = 'backend'
 
 urlpatterns = [
     path('', show_json, name='show_json'),
+    path('login/', login, name="login")
 ]

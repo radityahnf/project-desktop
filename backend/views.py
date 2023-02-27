@@ -3,7 +3,8 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.backends import UserModel
-from models import Profile, API
+from backend.models import Profile, API
+from django.contrib.auth import authenticate, login as auth_login
 
 
 
@@ -47,8 +48,62 @@ def register(request):
         return JsonResponse({"status": "error"}, status=401)
 
 
+@csrf_exempt
+def register_dummy():
+    
+        
+        
+        username = "aaa"
+        password1 = "adit"
+        password2 = "adit"
+        
+        
+        
+        if UserModel.objects.filter(username=username).exists():
+            return JsonResponse({"status": "duplicate"}, status=401)
 
+        if password1 != password2:
+            return JsonResponse({"status": "pass failed"}, status=401)
 
+        createUser = UserModel.objects.create_user(
+        username = username, 
+        password = password1,
+        )
+
+        createUser.save()
+        newUser = Profile.objects.create(
+        user = createUser, 
+        username = username
+        )
+
+        newUser.save()
+        return JsonResponse({"status": "success"}, status=200)
+
+@csrf_exempt
+def login(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            auth_login(request, user)
+            # Redirect to a success page.
+            return JsonResponse({
+                "status": True,
+                "message": "Successfully Logged In!"
+                # Insert any extra data if you want to pass data to Flutter
+                }, status=200)
+        else:
+            return JsonResponse({
+                "status": False,
+                "message": "Failed to Login, Account Disabled."
+                }, status=401)
+
+    else:
+        return JsonResponse({
+            "status": False,
+            "message": "Failed to Login, check your email/password."
+            }, status=401)
 
 # CRUD
 
@@ -119,5 +174,6 @@ def update(request):
         return JsonResponse({"status": "error"}, status=401)
 
 def show_json(request):
-    data = serializers.serialize('json', API.objects.all())
+    
+    data = serializers.serialize('json', UserModel.objects.all())
     return HttpResponse(data, content_type="application/json")
