@@ -3,7 +3,7 @@ from django.http.response import HttpResponse, HttpResponseRedirect, JsonRespons
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.backends import UserModel
-from backend.models import Profile, API
+from backend.models import Profile, Item
 from django.contrib.auth import authenticate, login as auth_login
 
 
@@ -113,21 +113,21 @@ def add(request):
         
         data = json.loads(request.body)
         
-        name = data["name"]
+        title = data["title"]
         description = data["description"]
-        link_website = data["link_website"]
-        id = data["id"]
+        image_link = data["image_link"]
+        
         try:
-            API.objects.get(name=name, link_website=link_website)
+            Item.objects.get(title=title, image_link=image_link)
             return JsonResponse({"status": "dup"}, status=401)
         except:
-            addAPI = API.objects.create(
-            name = name, 
+            addItem = Item.objects.create(
+            title = title, 
             description = description,
-            link_website = link_website
+            image_link = image_link
             )
 
-            addAPI.save()
+            addItem.save()
 
         
             return JsonResponse({"status": "success"}, status=200)
@@ -135,17 +135,22 @@ def add(request):
         return JsonResponse({"status": "error"}, status=401)
 
 @csrf_exempt
-def delete(request):
+def favorite(request):
     if request.method == 'POST':
         
         data = json.loads(request.body)
+        print(data)
+
+        title = data["title"]
+        description = data["description"]
+        image_link = data["imageLink"]
         
-        name = data["name"]
 
-        link_website = data["link_website"]
-        id = data["id"]
-
-        API.objects.delete(name=name, link_website=link_website, id=id)
+        item = Item.objects.get(title=title, image_link=image_link, description = description)
+        print(item.favorite)
+        item.favorite = not item.favorite
+        print(item.favorite)
+        item.save()
         
         return JsonResponse({"status": "success"}, status=200)
     else:
@@ -174,6 +179,5 @@ def update(request):
         return JsonResponse({"status": "error"}, status=401)
 
 def show_json(request):
-    
-    data = serializers.serialize('json', UserModel.objects.all())
+    data = serializers.serialize('json', Item.objects.all())
     return HttpResponse(data, content_type="application/json")

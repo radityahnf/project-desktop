@@ -9,9 +9,10 @@ class Profile(models.Model):
         return self.user.username
 
 
-class API(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=40)
+class Item(models.Model):
+    title = models.TextField()
     description = models.TextField()
+    image_link = models.TextField()
+    favorite = models.BooleanField(default=False)
     
     
