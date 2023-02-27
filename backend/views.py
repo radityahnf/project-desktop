@@ -157,26 +157,15 @@ def favorite(request):
         return JsonResponse({"status": "error"}, status=401)
 
 @csrf_exempt
-def update(request):
-    if request.method == 'POST':
-        
-        data = json.loads(request.body)
-        
-        name = data["name"]
+def delete(request):
+    data = json.loads(request.body)
 
-        description = data["description"]
-        id = data["id"]
-
-        data = API.objects.get(id=id)
-
-        data.name = name
-        data.description = description
-
-        data.save()
-        
-        return JsonResponse({"status": "success"}, status=200)
-    else:
-        return JsonResponse({"status": "error"}, status=401)
+    title = data['title']
+    description = data['description']
+    imageLink = data['imageLink']
+    
+    Item.objects.get(title=title, image_link=imageLink, description = description).delete()
+    return JsonResponse({"status": "success"}, status=200)
 
 def show_json(request):
     data = serializers.serialize('json', Item.objects.all())
